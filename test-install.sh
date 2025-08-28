@@ -22,35 +22,6 @@ env \
     arch-chroot /mnt /bin/bash <<'CHROOT_EOF'
 set -euo pipefail
 
-# --- Время и локаль ---
-ln -sf /usr/share/zoneinfo/$TIMEZONE /etc/localtime
-hwclock --systohc
-echo "✅ Время установлено"
-
-sed -i 's/^#\(en_US.UTF-8 UTF-8\)/\1/' /etc/locale.gen
-sed -i 's/^#\(ru_RU.UTF-8 UTF-8\)/\1/' /etc/locale.gen
-locale-gen
-echo 'LANG=en_US.UTF-8' > /etc/locale.conf
-echo "✅ Локали сгенерированы"
-
-# --- Сеть и пользователи ---
-echo "$HOSTNAME" > /etc/hostname
-cat >/etc/hosts <<HST
-127.0.0.1   localhost
-::1         localhost
-127.0.1.1   $HOSTNAME.localdomain $HOSTNAME
-HST
-systemctl enable NetworkManager
-echo "✅ Сетевые настройки"
-
-echo "root:$ROOT_PASSWORD" | chpasswd
-
-useradd -m -G wheel -s /bin/bash $USERNAME
-echo "$USERNAME:$USER_PASSWORD" | chpasswd
-sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
-
-echo "✅ Пользователь создан и пароли установлены"
-
 # --- vconsole ---
 cat > /etc/vconsole.conf <<VC
 FONT=cyr-sun16
