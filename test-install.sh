@@ -1,4 +1,3 @@
-
 #!/bin/bash
 set -euo pipefail
 
@@ -13,8 +12,15 @@ export USER_PASSWORD="userpass"
 export EFI="${DISK}1"
 export CRYPTROOT="${DISK}2"
 
-arch-chroot /mnt /bin/bash <<CHROOT_EOF
-set -uo pipefail
+env \
+    DISK="$DISK" \
+    TIMEZONE="$TIMEZONE" \
+    HOSTNAME="$HOSTNAME" \
+    USERNAME="$USERNAME" \
+    ROOT_PASSWORD="$ROOT_PASSWORD" \
+    USER_PASSWORD="$USER_PASSWORD" \
+    arch-chroot /mnt /bin/bash <<'CHROOT_EOF'
+set -euo pipefail
 
 # --- Время и локаль ---
 ln -sf /usr/share/zoneinfo/$TIMEZONE /etc/localtime
