@@ -38,8 +38,8 @@ echo "✅ Установка завершена"
 genfstab -U /mnt >> /mnt/etc/fstab
 echo "✅ Fstab"
 
-arch-chroot /mnt /bin/bash <<'CHROOT_EOF'
-set -euo pipefail
+arch-chroot /mnt /bin/bash <<CHROOT_EOF
+set -eu
 
 # --- Время и локаль ---
 ln -sf /usr/share/zoneinfo/$TIMEZONE /etc/localtime
@@ -73,7 +73,7 @@ echo "✅ Пользователь создан и пароли установл
 # --- Initramfs ---
 sed -i 's/^MODULES=.*/MODULES=(amdgpu f2fs)/' /etc/mkinitcpio.conf
 sed -i 's/^HOOKS=.*/HOOKS=(base systemd keyboard autodetect microcode modconf kms sd-vconsole block sd-encrypt filesystems fsck)/' /etc/mkinitcpio.conf
-mkinitcpio -P
+mkinitcpio -P -v
 echo "✅ Initramfs"
 
 # --- ZRAM ---
