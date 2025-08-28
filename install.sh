@@ -7,7 +7,7 @@ export HOSTNAME=arch
 export USERNAME=aboba
 export ROOT_PASSWORD="rootpass"
 export USER_PASSWORD="userpass"
-
+export LUKS_PASSWORD="your_luks_password_here"
 
 setfont cyr-sun16
 
@@ -19,6 +19,9 @@ export EFI="${DISK}1"
 export CRYPTROOT="${DISK}2"
 
 mkfs.fat -F32 $EFI
+
+echo -n "$LUKS_PASSWORD" | cryptsetup luksFormat "$CRYPTROOT" -
+echo -n "$LUKS_PASSWORD" | cryptsetup open "$CRYPTROOT" cryptroot -
 
 cryptsetup luksFormat $CRYPTROOT
 cryptsetup open $CRYPTROOT cryptroot
@@ -38,7 +41,15 @@ echo "✅ Установка завершена"
 genfstab -U /mnt >> /mnt/etc/fstab
 echo "✅ Fstab"
 
-arch-chroot /mnt /bin/bash <<CHROOT_EOF
+env \
+    DISK="$DISK" \
+    TIMEZONE="$TIMEZONE" \
+    HOSTNAME="$HOSTNAME" \
+    USERNAME="$USERNAME" \
+    ROOT_PASSWORD="$ROOT_PASSWORD" \
+    USER_PASSWORD="$USER_PASSWORD" \
+    LUKS_PASSWORD="$LUKS_PASSWORD" \
+    arch-chroot /mnt /bin/bash <<'CHROOT_EOF'
 set -euo pipefail
 
 # --- Время и локаль ---
@@ -80,7 +91,6 @@ echo "✅ /etc/vconsole.conf настроен"
 # --- Initramfs ---
 sed -i 's/^MODULES=.*/MODULES=(amdgpu f2fs)/' /etc/mkinitcpio.conf
 sed -i 's/^HOOKS=.*/HOOKS=(base systemd keyboard autodetect microcode modconf kms sd-vconsole block sd-encrypt filesystems fsck)/' /etc/mkinitcpio.conf
-mkinitcpio -P || echo "❌ mkinitcpio упал с кодом $?"
 echo "✅ Initramfs"
 
 # --- ZRAM ---
@@ -102,7 +112,7 @@ grub-mkconfig -o /boot/grub/grub.cfg
 echo "✅ GRUB + TPM"
 
 # --- TPM в LUKS ---
-systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=7 "${DISK}2"
+echo -n "$LUKS_PASSWORD" | systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=7 --unlock-force-password "$CRYPTROOT"
 echo "✅ TPM в LUKS"
 
 # --- Secure Boot с sbctl ---
