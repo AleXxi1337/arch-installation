@@ -70,6 +70,13 @@ sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
 
 echo "✅ Пользователь создан и пароли установлены"
 
+# --- vconsole ---
+cat > /etc/vconsole.conf <<VC
+FONT=cyr-sun16
+KEYMAP=us
+VC
+echo "✅ /etc/vconsole.conf настроен"
+
 # --- Initramfs ---
 sed -i 's/^MODULES=.*/MODULES=(amdgpu f2fs)/' /etc/mkinitcpio.conf
 sed -i 's/^HOOKS=.*/HOOKS=(base systemd keyboard autodetect microcode modconf kms sd-vconsole block sd-encrypt filesystems fsck)/' /etc/mkinitcpio.conf
