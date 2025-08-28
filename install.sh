@@ -23,9 +23,6 @@ mkfs.fat -F32 $EFI
 echo -n "$LUKS_PASSWORD" | cryptsetup luksFormat "$CRYPTROOT" -
 echo -n "$LUKS_PASSWORD" | cryptsetup open "$CRYPTROOT" cryptroot -
 
-cryptsetup luksFormat $CRYPTROOT
-cryptsetup open $CRYPTROOT cryptroot
-
 mkfs.f2fs /dev/mapper/cryptroot
 
 mount /dev/mapper/cryptroot /mnt
