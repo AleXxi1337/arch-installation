@@ -14,7 +14,7 @@ export EFI="${DISK}1"
 export CRYPTROOT="${DISK}2"
 
 arch-chroot /mnt /bin/bash <<CHROOT_EOF
-set -euo pipefail
+set -uo pipefail
 
 # --- Время и локаль ---
 ln -sf /usr/share/zoneinfo/$TIMEZONE /etc/localtime
