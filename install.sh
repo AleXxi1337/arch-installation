@@ -8,6 +8,9 @@ export USERNAME=aboba
 export ROOT_PASSWORD="rootpass"
 export USER_PASSWORD="userpass"
 
+
+setfont cyr-sun16
+
 # --- Разметка ---
 echo -e 'label: gpt\nsize=512M, type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B\ntype=0FC63DAF-8483-4772-8E79-3D69D8477DE4' | sfdisk "$DISK"
 echo "✅ Разметка выполнена"
