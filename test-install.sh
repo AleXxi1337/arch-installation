@@ -7,6 +7,7 @@ export HOSTNAME=arch
 export USERNAME=aboba
 export ROOT_PASSWORD="rootpass"
 export USER_PASSWORD="userpass"
+export LUKS_PASSWORD="password"
 
 
 export EFI="${DISK}1"
@@ -24,7 +25,7 @@ env \
 set -euo pipefail
 
 # --- TPM в LUKS ---
-systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=7 "${DISK}2"
+echo -n "$LUKS_PASSWORD" | systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=7 "$CRYPTROOT"
 echo "✅ TPM в LUKS"
 
 # --- Secure Boot с sbctl ---
