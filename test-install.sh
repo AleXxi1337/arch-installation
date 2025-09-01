@@ -1,17 +1,15 @@
 #!/bin/bash
 set -euo pipefail
 
-export DISK=/dev/vda
+export DISK=/dev/sdX
 export TIMEZONE=Europe/Moscow
 export HOSTNAME=arch
 export USERNAME=aboba
 export ROOT_PASSWORD="rootpass"
 export USER_PASSWORD="userpass"
-export LUKS_PASSWORD="password"
+export LUKS_PASSWORD="your_luks_password_here"
 
-
-export EFI="${DISK}1"
-export CRYPTROOT="${DISK}2"
+setfont cyr-sun16
 
 env \
     DISK="$DISK" \
