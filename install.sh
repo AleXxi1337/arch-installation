@@ -99,6 +99,13 @@ echo "✅ ZRAM"
 # --- Initramfs ---
 sed -i 's/^MODULES=.*/MODULES=(amdgpu f2fs tpm-tis)/' /etc/mkinitcpio.conf
 sed -i 's/^HOOKS=.*/HOOKS=(base systemd keyboard autodetect microcode modconf kms sd-vconsole block sd-encrypt filesystems fsck)/' /etc/mkinitcpio.conf
+
+PRESET_FILE="/etc/mkinitcpio.d/linux-zen.present"
+
+sed -i 's|/efi|/boot|g' "$PRESET_FILE"
+sed -i 's/^#\(default_uki=\)/\1/' "$PRESET_FILE
+sed -i 's/^#\(fallback_uki=\)/\1/' "$PRESET_FILE
+
 mkinitcpio -P
 echo "✅ Initramfs"
 
@@ -121,12 +128,6 @@ initrd  /amd-ucode.img
 initrd  /initramfs-linux-zen.img
 options rd.luks.name=${UUID}=cryptroot root=/dev/mapper/cryptroot rw
 ENTRY
-
-PRESET_FILE="/etc/mkinitcpio.d/linux-zen.present"
-
-sed -i 's|/efi|/boot|g' "$PRESET_FILE"
-sed -i 's/^#\(default_uki=\)/\1/' "$PRESET_FILE
-sed -i 's/^#\(fallback_uki=\)/\1/' "$PRESET_FILE
 
 echo "✅ systemd-boot установлен и настроен"
 
