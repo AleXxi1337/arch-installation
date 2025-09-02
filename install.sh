@@ -102,6 +102,8 @@ sed -i 's/^HOOKS=.*/HOOKS=(base systemd keyboard autodetect microcode modconf km
 
 PRESET_FILE="/etc/mkinitcpio.d/linux-zen.preset"
 
+mkdir -p /boot/EFI/Linux
+
 sed -i 's|/efi|/boot|g' "$PRESET_FILE"
 sed -i 's/^#\(default_uki=\)/\1/' "$PRESET_FILE"
 sed -i 's/^#\(fallback_uki=\)/\1/' "$PRESET_FILE"
