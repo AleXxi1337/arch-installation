@@ -12,7 +12,7 @@ export LUKS_PASSWORD="your_luks_password_here"
 setfont cyr-sun16
 
 # --- Разметка ---
-echo -e 'label: gpt\nsize=512M, type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B\ntype=0FC63DAF-8483-4772-8E79-3D69D8477DE4' | sfdisk "$DISK"
+echo -e 'label: gpt\nsize=1024M, type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B\ntype=0FC63DAF-8483-4772-8E79-3D69D8477DE4' | sfdisk "$DISK"
 echo "✅ Разметка выполнена"
 
 export EFI="${DISK}1"
@@ -97,7 +97,7 @@ ZRAM
 echo "✅ ZRAM"
 
 # --- Initramfs ---
-sed -i 's/^MODULES=.*/MODULES=(amdgpu f2fs)/' /etc/mkinitcpio.conf
+sed -i 's/^MODULES=.*/MODULES=(amdgpu f2fs tpm-tis)/' /etc/mkinitcpio.conf
 sed -i 's/^HOOKS=.*/HOOKS=(base systemd keyboard autodetect microcode modconf kms sd-vconsole block sd-encrypt filesystems fsck)/' /etc/mkinitcpio.conf
 mkinitcpio -P
 echo "✅ Initramfs"
@@ -121,6 +121,12 @@ initrd  /amd-ucode.img
 initrd  /initramfs-linux-zen.img
 options rd.luks.name=${UUID}=cryptroot root=/dev/mapper/cryptroot rw
 ENTRY
+
+PRESET_FILE="/etc/mkinitcpio.d/linux-zen.present"
+
+sed -i 's|/efi|/boot|g' "$PRESET_FILE"
+sed -i 's/^#\(default_uki=\)/\1/' "$PRESET_FILE
+sed -i 's/^#\(fallback_uki=\)/\1/' "$PRESET_FILE
 
 echo "✅ systemd-boot установлен и настроен"
 
