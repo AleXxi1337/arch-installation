@@ -25,24 +25,40 @@ env \
     arch-chroot /mnt /bin/bash <<'CHROOT_EOF'
 set -euo pipefail
 
-# --- TPM в LUKS ---
-echo -n "$LUKS_PASSWORD" | systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=7 "$CRYPTROOT"
-echo "✅ TPM в LUKS"
+# --- Initramfs ---
+sed -i 's/^MODULES=.*/MODULES=(amdgpu f2fs tpm-tis)/' /etc/mkinitcpio.conf
+sed -i 's/^HOOKS=.*/HOOKS=(base systemd keyboard autodetect microcode modconf kms sd-vconsole block sd-encrypt filesystems fsck)/' /etc/mkinitcpio.conf
 
-# --- Secure Boot с sbctl ---
-# 1. Создаём ключи
-sbctl create-keys
+PRESET_FILE="/etc/mkinitcpio.d/linux-zen.preset"
 
-# 2. Подписываем загрузчик и ядро
-sbctl sign -s /boot/EFI/GRUB/grubx64.efi
-sbctl sign -s /boot/vmlinuz-linux-zen
+sed -i 's|/efi|/boot|g' "$PRESET_FILE"
+sed -i 's/^#\(default_uki=\)/\1/' "$PRESET_FILE
+sed -i 's/^#\(fallback_uki=\)/\1/' "$PRESET_FILE
 
-# 3. Вносим ключи в UEFI (с Microsoft для совместимости)
-sbctl enroll-keys -m
+mkinitcpio -P
+echo "✅ Initramfs"
 
-# Проверка
-sbctl status
-echo "✅ Secure boot"
+# --- systemd-boot ---
+bootctl install
+
+UUID=$(blkid -s UUID -o value ${DISK}2)
+
+cat > /boot/loader/loader.conf <<LDR
+default arch.conf
+timeout 3
+console-mode auto
+editor no
+LDR
+
+cat > /boot/loader/entries/arch.conf <<ENTRY
+title   Arch Linux
+linux   /vmlinuz-linux-zen
+initrd  /amd-ucode.img
+initrd  /initramfs-linux-zen.img
+options rd.luks.name=${UUID}=cryptroot root=/dev/mapper/cryptroot rw
+ENTRY
+
+echo "✅ systemd-boot установлен и настроен"
 
 CHROOT_EOF
 

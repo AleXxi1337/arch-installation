@@ -100,7 +100,7 @@ echo "✅ ZRAM"
 sed -i 's/^MODULES=.*/MODULES=(amdgpu f2fs tpm-tis)/' /etc/mkinitcpio.conf
 sed -i 's/^HOOKS=.*/HOOKS=(base systemd keyboard autodetect microcode modconf kms sd-vconsole block sd-encrypt filesystems fsck)/' /etc/mkinitcpio.conf
 
-PRESET_FILE="/etc/mkinitcpio.d/linux-zen.present"
+PRESET_FILE="/etc/mkinitcpio.d/linux-zen.preset"
 
 sed -i 's|/efi|/boot|g' "$PRESET_FILE"
 sed -i 's/^#\(default_uki=\)/\1/' "$PRESET_FILE
