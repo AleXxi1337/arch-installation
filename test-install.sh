@@ -9,6 +9,9 @@ export ROOT_PASSWORD="rootpass"
 export USER_PASSWORD="userpass"
 export LUKS_PASSWORD="your_luks_password_here"
 
+export EFI="${DISK}1"
+export CRYPTROOT="${DISK}2"
+
 setfont cyr-sun16
 
 env \

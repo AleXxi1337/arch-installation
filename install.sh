@@ -20,7 +20,7 @@ export CRYPTROOT="${DISK}2"
 
 mkfs.fat -F32 $EFI
 
-echo -n "$LUKS_PASSWORD" | cryptsetup luksFormat "$CRYPTROOT" -
+echo -n "$LUKS_PASSWORD" | cryptsetup luksFormat --type luks2 "$CRYPTROOT" -
 echo -n "$LUKS_PASSWORD" | cryptsetup open "$CRYPTROOT" cryptroot -
 
 mkfs.f2fs /dev/mapper/cryptroot
@@ -30,9 +30,11 @@ mkdir -p /mnt/boot
 mount $EFI /mnt/boot
 
 # --- Базовые пакеты + Secure Boot ---
+sed -i "s/^#ParallelDownloads/ParallelDownloads/" /etc/pacman.conf
+reflector --country Russia --protocol http,https --sort rate --save /etc/pacman.d/mirrorlist
 pacstrap -K /mnt base base-devel linux-zen linux-firmware amd-ucode \
     sudo networkmanager cryptsetup vim man-db man-pages \
-    sbctl f2fs-tools tpm2-tools tpm2-tss zram-generator efibootmgr grub
+    sbctl f2fs-tools zram-generator
 echo "✅ Установка завершена"
 
 genfstab -U /mnt >> /mnt/etc/fstab
@@ -85,11 +87,6 @@ KEYMAP=us
 VC
 echo "✅ /etc/vconsole.conf настроен"
 
-# --- Initramfs ---
-sed -i 's/^MODULES=.*/MODULES=(amdgpu f2fs)/' /etc/mkinitcpio.conf
-sed -i 's/^HOOKS=.*/HOOKS=(base systemd keyboard autodetect microcode modconf kms sd-vconsole block sd-encrypt filesystems fsck)/' /etc/mkinitcpio.conf
-echo "✅ Initramfs"
-
 # --- ZRAM ---
 tee /etc/systemd/zram-generator.conf > /dev/null <<ZRAM
 [zram0]
@@ -99,33 +96,33 @@ swap-priority = 100
 ZRAM
 echo "✅ ZRAM"
 
-# --- GRUB + TPM ---
-export CRYPTUUID=$(blkid -s UUID -o value "${DISK}2")
-sed -i "s|^GRUB_CMDLINE_LINUX=.*|GRUB_CMDLINE_LINUX=\"rd.luks.name=$CRYPTUUID=cryptroot root=/dev/mapper/cryptroot rootfstype=f2fs\"|" /etc/default/grub
-echo "GRUB_ENABLE_CRYPTODISK=y" >> /etc/default/grub
+# --- Initramfs ---
+sed -i 's/^MODULES=.*/MODULES=(amdgpu f2fs)/' /etc/mkinitcpio.conf
+sed -i 's/^HOOKS=.*/HOOKS=(base systemd keyboard autodetect microcode modconf kms sd-vconsole block sd-encrypt filesystems fsck)/' /etc/mkinitcpio.conf
+mkinitcpio -P
+echo "✅ Initramfs"
 
-grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB --modules="tpm"
-grub-mkconfig -o /boot/grub/grub.cfg
-echo "✅ GRUB + TPM"
+# --- systemd-boot ---
+bootctl install
 
-# --- TPM в LUKS ---
-echo -n "$LUKS_PASSWORD" | systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=7 --unlock-force-password "$CRYPTROOT"
-echo "✅ TPM в LUKS"
+UUID=$(blkid -s UUID -o value ${DISK}2)
 
-# --- Secure Boot с sbctl ---
-# 1. Создаём ключи
-sbctl create-keys
+cat > /boot/loader/loader.conf <<LDR
+default arch.conf
+timeout 3
+console-mode auto
+editor no
+LDR
 
-# 2. Подписываем загрузчик и ядро
-sbctl sign -s /boot/EFI/GRUB/grubx64.efi
-sbctl sign -s /boot/vmlinuz-linux-zen
+cat > /boot/loader/entries/arch.conf <<ENTRY
+title   Arch Linux
+linux   /vmlinuz-linux-zen
+initrd  /amd-ucode.img
+initrd  /initramfs-linux-zen.img
+options rd.luks.name=${UUID}=cryptroot root=/dev/mapper/cryptroot rw
+ENTRY
 
-# 3. Вносим ключи в UEFI (с Microsoft для совместимости)
-sbctl enroll-keys -m
-
-# Проверка
-sbctl status
-echo "✅ Secure boot"
+echo "✅ systemd-boot установлен и настроен"
 
 CHROOT_EOF
 
