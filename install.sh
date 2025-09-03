@@ -107,6 +107,8 @@ mkdir -p /boot/EFI/Linux
 sed -i 's|/efi|/boot|g' "$PRESET_FILE"
 sed -i 's/^#\(default_uki=\)/\1/' "$PRESET_FILE"
 sed -i 's/^#\(fallback_uki=\)/\1/' "$PRESET_FILE"
+sed -i 's/^\(fallback_image=\)/#\1/' "$PRESET_FILE"
+sed -i 's/^\(default_image==\)/#\1/' "$PRESET_FILE"
 
 mkinitcpio -P
 echo "✅ Initramfs"
@@ -125,9 +127,7 @@ LDR
 
 cat > /boot/loader/entries/arch.conf <<ENTRY
 title   Arch Linux
-linux   /vmlinuz-linux-zen
-initrd  /amd-ucode.img
-initrd  /initramfs-linux-zen.img
+efi     /EFI/Linux/arch-linux-zen.efi
 options rd.luks.name=${UUID}=cryptroot root=/dev/mapper/cryptroot rw
 ENTRY
 
