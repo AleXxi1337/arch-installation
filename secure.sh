@@ -10,6 +10,6 @@ sbctl sign -s /boot/EFI/Linux/arch-linux-zen.efi
 sbctl sign -s /boot/EFI/Linux/arch-linux-zen-fallback.efi
 sbctl sign -s /boot/EFI/systemd/systemd-bootx64.efi
 sbctl sign -s /boot/EFI/Boot/bootx64.efi
-sbctl verify
 
-systemd-cryptenroll --tpm2-device=auto /dev/mapper/cryptroot --tpm2-pcrs=7
+systemd-cryptenroll --recovery-key /dev/vda2
+systemd-cryptenroll --tpm2-device=auto /dev/vda2 --tpm2-pcrs=7
