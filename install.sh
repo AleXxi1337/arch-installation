@@ -90,7 +90,7 @@ echo "✅ /etc/vconsole.conf настроен"
 # --- ZRAM ---
 tee /etc/systemd/zram-generator.conf > /dev/null <<ZRAM
 [zram0]
-zram-size = 2G
+zram-size = 2048
 compression-algorithm = zstd
 swap-priority = 100
 ZRAM
