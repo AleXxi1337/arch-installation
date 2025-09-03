@@ -123,6 +123,8 @@ default arch.conf
 timeout 3
 console-mode auto
 editor no
+auto-entries=no
+auto-fallback=no
 LDR
 
 cat > /boot/loader/entries/arch.conf <<ENTRY
